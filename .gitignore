@@ -148,3 +148,5 @@ notebook/templates/*.html
 
 
 /.venv
+c/bin
+c/data
