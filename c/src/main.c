@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "matrix\Matrix.h"
 #include "flsa_2d\FLSA_2D.h"
+#include "list\List.h"
+#include "VanillaTypesWrappers\SizeT.h"
+#include "VanillaTypesWrappers\Double.h"
 
 int main(int argc, char const *argv[])
 {
@@ -10,7 +14,7 @@ int main(int argc, char const *argv[])
     srand(666);
 
     // set original dimension of picture as well as scale ratio
-    size_t o_dim = 8, scale = 16;
+    size_t o_dim = 8, scale = 4;
 
     // create matrix of zeros with ones placed in random spots. This decides where fields will be
     Matrix random_binomial = RandomBinomial(1, 0.3, o_dim, o_dim);

@@ -13,6 +13,7 @@ size_t Matrix_GetNumRows(Matrix self);
 size_t Matrix_GetNumCols(Matrix self);
 
 double Matrix_Get(Matrix self, size_t pRow, size_t pCol);
+void Matrix_Set(Matrix self, size_t pRow, size_t pCol, double pNewValue);
 
 Matrix Matrix_Add(Matrix A, Matrix B);
 Matrix Matrix_Multiply(Matrix A, Matrix B);

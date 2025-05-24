@@ -58,6 +58,11 @@ double Matrix_Get(Matrix self, size_t pRow, size_t pCol)
     return self->_values[Matrix_Coord2Index(self, pRow, pCol)];
 }
 
+void Matrix_Set(Matrix self, size_t pRow, size_t pCol, double pNewValue)
+{
+    self->_values[Matrix_Coord2Index(self, pRow, pCol)] = pNewValue;
+}
+
 Matrix Matrix_Add(Matrix A, Matrix B)
 {
     if (!(A->_numRows == B->_numRows && A->_numCols == B->_numCols))
