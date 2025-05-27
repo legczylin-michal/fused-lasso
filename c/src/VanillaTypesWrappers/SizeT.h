@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#include "../basic/types.h"
+
 struct cSizeT
 {
     size_t value;
@@ -12,5 +14,6 @@ typedef struct cSizeT *SizeT;
 SizeT new_SizeT(size_t value);
 void del_SizeT(SizeT *self);
 SizeT copy_SizeT(SizeT self);
+String str_SizeT(SizeT self);
 
 #endif // !_SIZE_T_H_

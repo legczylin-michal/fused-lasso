@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include "../basic/String/String.h"
+
 Double new_Double(double value)
 {
     Double result = (Double)malloc(sizeof(struct cDouble));
@@ -26,4 +28,9 @@ void del_Double(Double *self)
 Double copy_Double(Double self)
 {
     return new_Double(self->value);
+}
+
+String str_Double(Double self)
+{
+    return str(self->value);
 }

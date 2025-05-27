@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "../basic/String/String.h"
+#include "../basic/List/List.h"
+
 struct cMatrix
 {
     size_t _numRows;
@@ -119,9 +122,47 @@ void Matrix_Print(Matrix self)
 
 char *doubleAsString(double value)
 {
-    int bs = snprintf(NULL, 0, "%lf", value);
+    int bs = snprintf(NULL, 0, "%.20lf", value);
     char *result = (char *)malloc(sizeof(char) * (bs + 1));
-    snprintf(result, bs + 1, "%lf", value);
+    snprintf(result, bs + 1, "%.20lf", value);
+
+    return result;
+}
+
+Matrix Matrix_ReadCsv(const char *filepath, const char *separator)
+{
+    FILE *fptr = fopen(filepath, "r");
+
+    if (fptr == NULL)
+    {
+        perror("Could not open file");
+        exit(-1);
+    }
+
+    fseek(fptr, 0, SEEK_END);
+    long int fs = ftell(fptr);
+    fseek(fptr, 0, SEEK_SET);
+
+    char *fileContents = (char *)malloc(sizeof(char) * (fs + 1));
+    fread(fileContents, sizeof(char), fs + 1, fptr);
+    fileContents[fs] = '\0';
+
+    fclose(fptr);
+
+    String file = str(fileContents);
+
+    List lines = String_Split(file, str("\n"));
+    List table = new_List((delfunc)del_List, (copyfunc)copy_List, (strfunc)str_List);
+    for (size_t i = 0; i < List_GetSize(lines); i++)
+        List_Append(table, String_Split((String)List_Get(lines, i), str(separator)));
+
+    size_t rows = List_GetSize(table), cols = List_GetSize((List)List_Get(table, 0));
+
+    Matrix result = new_Matrix(rows, cols);
+
+    for (size_t i = 0; i < rows; i++)
+        for (size_t j = 0; j < cols; j++)
+            Matrix_Set(result, i, j, atof(String_GetCharacters((String)List_Get((List)List_Get(table, i), j))));
 
     return result;
 }

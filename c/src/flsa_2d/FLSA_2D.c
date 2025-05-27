@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include "..\List\List.h"
-#include "..\VanillaTypesWrappers\SizeT.h"
-#include "..\VanillaTypesWrappers\Double.h"
+#include "../basic/List/List.h"
+#include "../VanillaTypesWrappers/SizeT.h"
+#include "../VanillaTypesWrappers/Double.h"
 
 double absolute(double a)
 {
@@ -157,12 +157,12 @@ FLSA_2D new_FLSA_2D(double pLambda1, double pLambda2, size_t pMaxIter, double pT
 
     result->_n1 = 0;
     result->_n2 = 0;
-    result->_N = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT);
-    result->_G = new_List((delfunc)del_List, (copyfunc)copy_List);
-    result->_neighbours = new_List((delfunc)del_List, (copyfunc)copy_List);
-    result->_w = new_List((delfunc)del_List, (copyfunc)copy_List);
-    result->_y_bar = new_List((delfunc)del_Double, (copyfunc)copy_Double);
-    result->_gamma = new_List((delfunc)del_Double, (copyfunc)copy_Double);
+    result->_N = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT);
+    result->_G = new_List((delfunc)del_List, (copyfunc)copy_List, (strfunc)str_List);
+    result->_neighbours = new_List((delfunc)del_List, (copyfunc)copy_List, (strfunc)str_List);
+    result->_w = new_List((delfunc)del_List, (copyfunc)copy_List, (strfunc)str_List);
+    result->_y_bar = new_List((delfunc)del_Double, (copyfunc)copy_Double, (strfunc)str_Double);
+    result->_gamma = new_List((delfunc)del_Double, (copyfunc)copy_Double, (strfunc)str_Double);
 
     return result;
 }
@@ -233,7 +233,7 @@ void FLSA_2D_SetParametersBasedOnY(FLSA_2D self, Matrix pY)
     self->_n2 = Matrix_GetNumCols(pY);
     for (size_t k = 0; k < self->_n1 * self->_n2; k++)
     {
-        List kThGroup = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT);
+        List kThGroup = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT);
         List_Append(kThGroup, new_SizeT(k));
         List_Append(self->_G, kThGroup);
         List_Append(self->_N, new_SizeT(1));
@@ -242,8 +242,8 @@ void FLSA_2D_SetParametersBasedOnY(FLSA_2D self, Matrix pY)
     {
         for (size_t j = 0; j < self->_n2; j++)
         {
-            List_Append(self->_neighbours, new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT));
-            List_Append(self->_w, new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT));
+            List_Append(self->_neighbours, new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT));
+            List_Append(self->_w, new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT));
             // if there is neighbour above
             if (FLSA_2D_InBounds(self, (int)i - 1, j))
             {
@@ -298,15 +298,15 @@ void FLSA_2D_Print(FLSA_2D self)
 
 void FLSA_2D_Fit(FLSA_2D self, Matrix pY)
 {
-
     // set increment for lambda2
-    double delta = 1e-1;
+    double delta = 1e-9;
     // initiate parameters based on y data matrix
     FLSA_2D_SetParametersBasedOnY(self, pY);
     // assert correctness of initialisation
     // FLSA_2D_Print(self);
     // smooth cycle — increment lambda2 from 0 up to self._lambda2 by ~delta
-    double step = (self->_lambda2 - delta) / ceil((self->_lambda2 - delta) / delta);
+    // double step = (self->_lambda2 - delta) / ceil((self->_lambda2 - delta) / delta);
+    double step = (self->_lambda2 - delta) / 9.0f;
     for (double lambda2 = delta; lambda2 <= self->_lambda2; lambda2 += step)
     {
         // convergence key
@@ -321,12 +321,12 @@ void FLSA_2D_Fit(FLSA_2D self, Matrix pY)
             {
                 // descent part — try to optimise only in gamma[k] direction
                 // derivative is piece-wise linear at breakpoints
-                List breakpoints = new_List((delfunc)del_Double, (copyfunc)copy_Double);
+                List breakpoints = new_List((delfunc)del_Double, (copyfunc)copy_Double, (strfunc)str_Double);
                 List_Append(breakpoints, new_Double(0.0f));
                 for (size_t i = 0; i < List_GetSize((List)List_Get(self->_neighbours, k)); i++)
                     List_Append(breakpoints, new_Double(((Double)List_Get(self->_gamma, ((SizeT)List_Get((List)List_Get(self->_neighbours, k), i))->value))->value));
                 // with scaling parameters stored in penalties
-                List penalties = new_List((delfunc)del_Double, (copyfunc)copy_Double);
+                List penalties = new_List((delfunc)del_Double, (copyfunc)copy_Double, (strfunc)str_Double);
                 List_Append(penalties, new_Double(self->_lambda1));
                 for (size_t i = 0; i < List_GetSize((List)List_Get(self->_neighbours, k)); i++)
                     List_Append(penalties, new_Double(lambda2 * ((SizeT)List_Get((List)List_Get(self->_w, k), i))->value / List_GetSize((List)List_Get(self->_G, k))));
@@ -384,8 +384,8 @@ void FLSA_2D_Fit(FLSA_2D self, Matrix pY)
                     // simulate average data value at potential group
                     double y_bar_m = (((SizeT)List_Get(self->_N, k))->value * ((Double)List_Get(self->_y_bar, k))->value + ((SizeT)List_Get(self->_N, k_prime))->value * ((Double)List_Get(self->_y_bar, k_prime))->value) / N_m;
                     //
-                    List neighbours_m = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT);
-                    List w_m = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT);
+                    List neighbours_m = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT);
+                    List w_m = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT);
                     // take neighbours of k-th group (exclude k_prime-th group)
                     for (size_t j = 0; j < List_GetSize((List)List_Get(self->_neighbours, k)); j++)
                     {
@@ -432,12 +432,12 @@ void FLSA_2D_Fit(FLSA_2D self, Matrix pY)
 
                     // descent part — try to optimise only in gamma[k] direction
                     // derivative is piece-wise linear at breakpoints
-                    List breakpoints = new_List((delfunc)del_Double, (copyfunc)copy_Double);
+                    List breakpoints = new_List((delfunc)del_Double, (copyfunc)copy_Double, (strfunc)str_Double);
                     List_Append(breakpoints, new_Double(0.0f));
                     for (size_t j = 0; j < List_GetSize(neighbours_m); j++)
                         List_Append(breakpoints, new_Double(((Double)List_Get(self->_gamma, ((SizeT)List_Get(neighbours_m, j))->value))->value));
                     // with scaling parameters stored in penalties
-                    List penalties = new_List((delfunc)del_Double, (copyfunc)copy_Double);
+                    List penalties = new_List((delfunc)del_Double, (copyfunc)copy_Double, (strfunc)str_Double);
                     List_Append(penalties, new_Double(self->_lambda1));
                     for (size_t j = 0; j < List_GetSize(w_m); j++)
                         List_Append(penalties, new_Double(lambda2 * ((SizeT)List_Get(w_m, j))->value / N_m));
@@ -507,7 +507,7 @@ void FLSA_2D_Fit(FLSA_2D self, Matrix pY)
         while (k < List_GetSize(self->_G))
         {
             // store indexes of neighbours which are to be fused
-            List indexesOfGroupsToFuse = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT);
+            List indexesOfGroupsToFuse = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT);
             // iterate over every neighbour
             for (size_t i = 0; i < List_GetSize((List)List_Get(self->_neighbours, k)); i++)
             {
@@ -589,7 +589,7 @@ void FLSA_2D_Fit(FLSA_2D self, Matrix pY)
                 }
             }
             sort(indexesOfGroupsToFuse);
-            List map = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT);
+            List map = new_List((delfunc)del_SizeT, (copyfunc)copy_SizeT, (strfunc)str_SizeT);
             for (size_t j = 0; j < List_GetSize(self->_G); j++)
                 List_Append(map, new_SizeT(IndexAfterRemoval(j, indexesOfGroupsToFuse)));
 

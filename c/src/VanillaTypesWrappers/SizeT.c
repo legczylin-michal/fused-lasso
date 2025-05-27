@@ -1,5 +1,7 @@
 #include "SizeT.h"
 
+#include "../basic/String/String.h"
+
 SizeT new_SizeT(size_t value)
 {
     SizeT result = (SizeT)malloc(sizeof(struct cSizeT));
@@ -24,4 +26,9 @@ void del_SizeT(SizeT *self)
 SizeT copy_SizeT(SizeT self)
 {
     return new_SizeT(self->value);
+}
+
+String str_SizeT(SizeT self)
+{
+    return str(self->value);
 }

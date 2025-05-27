@@ -1,17 +1,14 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
+#include "../types.h"
+
 #include <stdlib.h>
 
-typedef void (*delfunc)(void **);
-typedef void *(*copyfunc)(void *);
-
-struct cList;
-typedef struct cList *List;
-
-List new_List(delfunc pDeleteFunction, copyfunc pCopyFunction);
+List new_List(delfunc pDeleteFunction, copyfunc pCopyFunction, strfunc pToStringFunction);
 void del_List(List *self);
 List copy_List(List self);
+String str_List(List self);
 
 size_t List_GetSize(List self);
 

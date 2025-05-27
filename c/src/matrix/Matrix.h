@@ -22,6 +22,7 @@ Matrix Matrix_Repeat(Matrix A, size_t n, size_t axis);
 
 void Matrix_Print(Matrix self);
 
+Matrix Matrix_ReadCsv(const char *filepath, const char *separator);
 void Matrix_SaveCsv(Matrix self, const char *filepath, const char *separator);
 
 Matrix RandomBinomial(size_t n, double p, size_t rows, size_t cols);
